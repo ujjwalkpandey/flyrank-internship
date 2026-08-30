@@ -1,27 +1,183 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ujjwal Pandey — Search Intelligence & AI Fluency</title>
-<meta name="description" content="Ujjwal Pandey turns messy search data into clear decisions.">
-<link rel="stylesheet" href="assets/style.css"></head><body>
-<header><a class="brand" href="#top">Ujjwal Pandey</a><nav><a href="#work">Work</a><a href="#about">About</a><a href="#agent">Agent</a><a href="#contact">Contact</a></nav></header>
-<main id="top">
-<section class="hero"><p class="eyebrow">SEARCH INTELLIGENCE · ML · AI FLUENCY</p>
-<h1>I turn messy search data into clear decisions.</h1>
-<p class="lead">I build practical, evidence-led tools that help content and SEO reviewers decide what deserves attention next — using AI as a partner without outsourcing judgment.</p>
-<a class="btn" href="#work">See the work</a></section>
-<section id="work"><p class="num">01</p><h2>Selected work</h2>
-<article class="case"><span class="tag">ML · CAPSTONE</span><h3>CTR / Engagement Opportunity Scoring</h3>
-<p><b>Problem.</b> A page can have search visibility without capturing clicks efficiently. A reviewer needs a way to prioritize investigation without treating low CTR as proof that a page is broken.</p>
-<p><b>What I did.</b> I framed the problem as opportunity scoring, built a time-aware feature/label setup over the FlyRank warehouse, checked leakage, compared a transparent baseline with a model, and produced ranked recommendations with reason codes.</p>
-<p><b>What came of it.</b> A repeatable decision-support workflow: rank pages for review, explain why they surfaced, and keep the recommendation human-reviewed.</p>
-<a href="https://github.com/ujjwalkpandey/flyrank-internship">Repository ↗</a> · <a href="https://github.com/ujjwalkpandey/flyrank-internship/blob/main/work/notebooks/ML_Capstone_CTR_Opportunity_Scoring.ipynb">Notebook ↗</a></article>
-<div class="grid"><article class="case"><span class="tag">AI FLUENCY</span><h3>Prompt engineering on real work</h3><p><b>Problem.</b> Generic prompts produced generic answers.</p><p><b>What I did.</b> I used a six-run ladder, changing one technique at a time and comparing outputs.</p><p><b>Outcome.</b> A reusable prompting workflow based on observed improvements.</p></article>
-<article class="case"><span class="tag">ML FOUNDATIONS</span><h3>Data contract to baseline</h3><p><b>Problem.</b> Modeling without a data contract makes leakage and unclear decision points easy to miss.</p><p><b>What I did.</b> Defined grain, time window, target/proxy, availability checks, decision-time features and a deliberate leakage test.</p><p><b>Outcome.</b> A clearer row → signal → score → action chain.</p></article></div></section>
-<section id="about"><p class="num">02</p><h2>About</h2><div class="split"><p>I’m a student working across machine learning, search intelligence, and practical AI workflows. I like problems where the hard part is deciding what an answer is allowed to mean.</p><p>My working style: define the decision first, test the data, use AI where it accelerates the work, and keep the human accountable for the final claim.</p></div></section>
-<section id="agent"><p class="num">03</p><h2>Ask my personal agent</h2><p class="muted">A small working browser agent answering from a controlled public knowledge base.</p>
-<div class="agent"><div id="log"><div class="bubble bot">Ask about my work, ML capstone, skills, or AI workflow.</div></div>
-<form id="form"><input id="input" placeholder="What did he build for the ML capstone?"><button class="btn">Ask</button></form>
-<div class="chips"><button data-q="What is his main strength?">Main strength</button><button data-q="What did he build for the ML capstone?">ML capstone</button><button data-q="How does he use AI?">AI workflow</button></div></div></section>
-<section id="contact"><p class="num">04</p><h2>Get in touch</h2><p>If you have a search, ML, or AI-workflow problem worth testing, start a conversation.</p><a class="btn" href="mailto:23053563@kiit.ac.in">Email me</a><p class="muted">Replace the email address before launch.</p></section>
-</main><footer>© 2026 Ujjwal Pandey · <a href="https://flyrank.ai">FlyRank data credit ↗</a></footer>
-<script src="assets/agent.js"></script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CTR / Engagement Opportunity Scoring — Ujjwal Pandey</title>
+<meta name="description" content="A public-safe research paper on CTR and engagement opportunity scoring using the FlyRank ML Internship dataset.">
+<style>
+body{font-family:system-ui,-apple-system,Segoe UI,sans-serif;max-width:900px;margin:auto;padding:40px 22px;line-height:1.7;color:#17202a;background:#fafafa}
+h1{font-size:42px;line-height:1.15} h2{margin-top:48px} h3{margin-top:28px}
+table{border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ccc;padding:10px 16px;text-align:left}
+.notice{padding:18px;border-left:5px solid #a33;background:#fff0f0}
+a{color:#0645ad}
+footer{margin-top:70px;padding-top:25px;border-top:1px solid #ccc}
+</style></head><body>
+
+<h1>Google Search Ranking &amp; Discoverability Capstone</h1>
+<h2>CTR / Engagement Opportunity Scoring</h2>
+
+<strong>Research question:</strong> Which visible pages under-capture clicks or engagement and deserve metadata, content, or monitoring review?
+
+<strong>Decision supported:</strong> Which pages should an SEO/content reviewer investigate first?
+
+<strong>Lane:</strong> CTR / Engagement Opportunity Scoring
+
+<hr>
+
+<h2>Abstract</h2>
+
+<p>Search teams need a practical way to decide which visible pages deserve review first. This capstone studies CTR / Engagement Opportunity Scoring using pseudonymized FlyRank search-performance data and a page-level ranking approach. The warehouse contains 78,835,655 daily performance rows in the documented release, while the executed notebook connection returned 7,883,565 rows for the queried local slice. A preliminary modeling run produced a baseline MAE of 0.012917 and model MAE of 0.000016, but that run is explicitly treated as invalid evidence because the model inputs included clicks and impressions while the target was CTR, which is directly derived from those fields. Therefore this paper reports the preliminary numbers for reproducibility only and does not claim model superiority until a leakage-safe future-window evaluation is executed.</p>
+
+<hr>
+
+<h2>1. Introduction / Problem statement</h2>
+
+<p>Search visibility alone does not tell a reviewer which page deserves attention first. A page can receive meaningful search exposure while capturing fewer clicks than comparable visible pages. The goal of this project is therefore decision support: rank pages for human review using observable search and engagement signals, rather than claiming that a score guarantees a successful SEO change.</p>
+
+<p>The intended user is an SEO or content reviewer with limited review capacity. The output is a ranked queue with an action and a reason code.</p>
+
+<hr>
+
+<h2>2. Data</h2>
+
+<p>The documented warehouse release is `flyrank_pseudonymized_warehouse_release_v20260703`.</p>
+
+<p>The documented main tables are:</p>
+
+<ul>
+<li>`dim_clients`: 104 pseudonymized clients.</li>
+<li>`dim_content`: 519,606 pseudonymized content items.</li>
+<li>`fact_content_daily_performance`: 78,835,655 daily performance rows.</li>
+<li>`fact_content_query_90d`: 2,414,248 fixed-window query-hash rows.</li>
+</ul>
+
+<p>The capstone uses the daily performance facts for search-performance signals. The executed notebook connection reported a queried date span from 2025-01-27 through 2026-06-30 and 7,883,565 rows in that queried relation.</p>
+
+<p>Public output excludes client names, domains, raw URLs, private queries, titles/text that could reveal a client, credentials, and internal infrastructure details.</p>
+
+<hr>
+
+<h2>3. Methodology</h2>
+
+<h3>Unit of analysis</h3>
+
+<p>A page-level search-performance observation for a pseudonymized client and content item at a reporting date.</p>
+
+<h3>Candidate decision-time features</h3>
+
+<p>The intended CTR/engagement feature family includes:</p>
+
+<ul>
+<li>GSC impressions</li>
+<li>GSC clicks</li>
+<li>CTR</li>
+<li>average position</li>
+<li>position tier</li>
+<li>content type / intent where safely available</li>
+<li>content age / freshness where safely available</li>
+<li>sessions</li>
+<li>engagement context</li>
+</ul>
+
+<h3>Opportunity logic</h3>
+
+<p>CTR must be interpreted relative to search visibility and position. Pages at different positions naturally have different click-through behavior, so a useful opportunity score should compare a page against an appropriate position/visibility context rather than apply one global CTR threshold.</p>
+
+<h3>Baseline</h3>
+
+<p>The baseline is a transparent rule/ranking approach using observable visibility and CTR context. Reason codes are intended to make the queue inspectable by a human.</p>
+
+<h3>Validation</h3>
+
+<p>The final capstone requires a time-aware future-window design: features measured at month *t* must predict an outcome in month *t+1*. A leakage audit must confirm that the target window does not enter the feature window and that derived target fields are excluded.</p>
+
+<hr>
+
+<h2>4. Results vs baseline</h2>
+
+<h3>Preliminary executed run</h3>
+
+<p>The first executed modeling run reported:</p>
+
+| Metric | Result |
+|---|---:|
+| Baseline MAE | 0.012917 |
+| Model MAE | 0.000016 |
+| Apparent improvement | 0.012902 |
+
+<h3>Leakage finding</h3>
+
+<p><strong>These numbers are not used as evidence of model quality.</strong></p>
+
+<p>The preliminary code predicted CTR while supplying `gsc_clicks` and `gsc_impressions` as model inputs. Because CTR is directly computed as clicks divided by impressions, those features contain the answer itself. The near-zero model error is therefore a leakage artifact.</p>
+
+<p>This is precisely the type of failure the capstone's leakage audit is designed to catch. The documented project guidance says that target-window metrics must not be used as features and that a feature derived from the answer can make results look great while being worthless.</p>
+
+<p>A leakage-safe run is required before claiming that a learned model beats the baseline.</p>
+
+<hr>
+
+<h2>5. Limitations & honest framing</h2>
+
+<p>This work is observational and intended for decision support.</p>
+
+<p>A low CTR does not prove that a title, metadata element, or page content is defective. Search intent, SERP features, seasonality, brand/non-brand mix, and other factors can affect observed CTR.</p>
+
+<p>A ranked opportunity score does not prove that changing a page will cause a recovery. Establishing causal refresh impact would require an appropriate experiment or causal design.</p>
+
+<p>The preliminary result demonstrates why leakage control matters; it does not demonstrate production model performance.</p>
+
+<hr>
+
+<h2>6. Ranked recommendations</h2>
+
+<p>The action engine should prioritize pages using transparent evidence and provide one reason code per recommendation.</p>
+
+<p>Recommended action categories:</p>
+
+<p>1. **REVIEW_CTR_METADATA** — visible page with meaningful exposure and CTR weakness relative to its position context.</p>
+<p>2. **REVIEW_INTENT_MATCH** — CTR weakness where search intent/content alignment deserves human inspection.</p>
+<p>3. **REVIEW_ENGAGEMENT** — meaningful sessions with weak engagement signals.</p>
+<p>4. **MONITOR** — directional weakness without enough evidence for an immediate content change.</p>
+
+<p>Human reviewers should inspect the highest-ranked candidates before changing titles, metadata, content, consolidation status, or publication state.</p>
+
+<p>The score should never be treated as an automatic publishing command.</p>
+
+<hr>
+
+<h2>7. Reproducibility</h2>
+
+<p>Repository:</p>
+
+<p>https://github.com/ujjwalkpandey/flyrank-internship</p>
+
+<p>Capstone notebook:</p>
+
+<p>`work/notebooks/capstone.ipynb`</p>
+
+<p>Baseline notebook:</p>
+
+<p>`work/notebooks/w04_baseline_score.ipynb`</p>
+
+<p>The notebook connects to the gated FlyRank warehouse through the existing `HF_TOKEN` secret. Credentials are not stored in the repository.</p>
+
+<p>Paper URL:</p>
+
+<p>https://ujjwalkpandey.github.io/flyrank-internship/</p>
+
+<hr>
+
+<h2>8. Acknowledgments & data credit</h2>
+
+<p>Built on the FlyRank ML Internship dataset.</p>
+
+<p>Data source: https://flyrank.ai/</p>
+
+<p>This project uses the internship warehouse for educational and research purposes and follows the public-safety restrictions of the internship: pseudonymized/aggregated evidence, no client-identifying outputs, and no claims that the analysis proves Google's ranking algorithm or causal refresh effects.</p>
+
+<hr>
+
+<h2>Reproducibility note</h2>
+
+<p>The repository contains the notebook used to perform the analysis. The preliminary model run is intentionally disclosed as invalid because of target leakage rather than being presented as a successful benchmark. A subsequent leakage-safe future-window evaluation should replace the preliminary results before this paper is represented as a validated model study.</p>
+<div class="notice"><strong>Important:</strong> The preliminary model metrics above are disclosed but are not presented as valid evidence of predictive performance because the preliminary run contained target leakage. A leakage-safe future-window evaluation is required for a validated model claim.</div>
+<footer>Built on the FlyRank ML Internship dataset · Ujjwal Pandey</footer>
+</body></html>
